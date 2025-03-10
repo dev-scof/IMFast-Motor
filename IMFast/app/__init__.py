@@ -23,8 +23,20 @@ def create_app(settings: Settings) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         # Do something before the application starts
+        app.settings = settings
+
+        # Connect MongoDB
+        app.mongodb_cli = mongodb.get_client(settings.mongodb_uri)
+        app.mongodb = app.mongodb_cli[settings.mongodb_db_name]
+
+        # Health Check MongoDB
+        for db in (app.mongodb,):
+            pong = await db.command("ping")
+            if int(pong.get("ok", 0)) != 1:
+                raise Exception(f"{db.name} MongoDB Connection is not okay!")
         yield
         # Do something after the application terminates
+        app.mongodb_cli.close()
 
     app = FastAPI(
         title=settings.app_name,
@@ -42,14 +54,9 @@ def create_app(settings: Settings) -> FastAPI:
         lifespan=lifespan
     )
 
-    # Global init
-    app.mongodb_cli = mongodb.get_client(settings.mongodb_uri)
-    app.mongodb = app.mongodb_cli[settings.mongodb_db_name]
-    app.settings = settings
-
     # Built-in init
     middleware.init_app(app, settings)
-    error_handler.init_app(app)
+    error_handler.init_app(app, settings)
 
     # Extension/Middleware init
     app.add_middleware(

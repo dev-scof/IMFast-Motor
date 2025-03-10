@@ -18,8 +18,9 @@ def init_app(
 
     @app.middleware("http")
     async def slow_api_tracker(
-            request: Request,
-            call_next: Callable):
+        request: Request,
+        call_next: Callable
+    ):
         """slow api tracker middleware"""
         
         process_time = time.time()
@@ -42,8 +43,9 @@ def init_app(
     if app_settings.mongodb_api_log:
         @app.middleware('http')
         async def mongodb_api_logger(
-                request: Request,
-                call_next: Callable):
+            request: Request,
+            call_next: Callable
+        ):
             """Mongodb API Logger Middleware"""
             response = await call_next(request)
             db = request.app.mongodb

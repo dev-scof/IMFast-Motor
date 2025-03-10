@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     # Slow API settings
     slow_api_time: float = 0.5
     # Mongodb settings
-    mongodb_uri: str = "mongodb://localhost:27017"
+    mongodb_uri: str
     mongodb_db_name: str = "Imfast"
     mongodb_api_log: bool = True
 
